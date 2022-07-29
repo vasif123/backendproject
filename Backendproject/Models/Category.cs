@@ -17,6 +17,5 @@ namespace Backendproject.Models
         public List<Clothes> Clothes { get; set; }
         [NotMapped]
         public IFormFile Photo{ get; set; }
-        public int? Id { get; internal set; }
     }
 }

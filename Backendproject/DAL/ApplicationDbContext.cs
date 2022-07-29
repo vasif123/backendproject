@@ -13,19 +13,22 @@ namespace Backendproject.DAL
         {
 
         }
-
         public DbSet<Clothes> Clothes { get; set; }
         public DbSet<ClothesImage> ClothesImages { get; set; }
+        public DbSet<ClothesInformation> ClothesInformations { get; set; }
         public DbSet<Category> Categories { get; set; }
-        //public DbSet<ClothesCategory> ClothesCategories { get; set; }
         public DbSet<Color> Colors { get; set; }
         public DbSet<ClothesColor> ClothesColors { get; set; }
         public DbSet<Size> Sizes { get; set; }
-        //public DbSet<ColorSize> ColorSizes { get; set; }
         public DbSet<Setting> Settings { get; set; }
         public DbSet<Slider> Sliders { get; set; }
         public DbSet<SpecialOffer> SpecialOffers { get; set; }
         public DbSet<ClothesColorSize> ClothesColorSizes { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Backendproject.DAL;
+using Backendproject.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +10,15 @@ using System.Threading.Tasks;
 namespace Backendproject.Areas.adminPanel.Controllers
 {
     [Area("adminPanel")]
+    [Authorize(Roles ="Moderator,Admin")]
+
     public class DashboardController : Controller
     {
+        
         public IActionResult Index()
         {
             return View();
         }
+
     }
 }

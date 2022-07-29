@@ -12,31 +12,28 @@ namespace Backendproject.Models
     {
         public string Name { get; set; }
         public decimal Price { get; set; }
-        public decimal DiscountPrice { get; set; }
         public string Description { get; set; }
-        public string ExtraInfo { get; set; }
+        public int? ClothesInformationId { get; set; }
+        public ClothesInformation ClothesInformation { get; set; }
         public List<ClothesImage> ClothesImages { get; set; }
         public int? CategoryId { get; set; }
         public Category Category { get; set; }
         public List<ClothesColor> ClothesColors { get; set; }
+        public int? DiscountId { get; set; }
+        public Discount Discount { get; set; }
+        public decimal? DiscountPrice { get; set; }
 
-        
-       
+        [NotMapped]
         public IFormFile MainPhoto { get; set; }
-       
+        [NotMapped]
         public List<IFormFile> DetailPhotos { get; set; }
-        
+        [NotMapped]
         public List<int> ImageIds { get; set; }
-       
-        public List<int> SizeIds { get; set; }
-        
-        public int SizeId { get; set; }
-     
+        [NotMapped]
         public int ColorId { get; set; }
-        
-        public int Quantity { get; set; }
-
-       
+        [NotMapped]
+        public List<int> SizeIds { get; set; }
+        [NotMapped]
         public List<string> ClothesColorSizeValues { get; set; }
     }
 }

@@ -1,0 +1,79 @@
+﻿@model List<Backendproject.Models.Message>
+
+@{
+    ViewData["Title"] = "MessageBox";
+}
+
+<div class="main-panel container mt-4">
+
+    <h3>MessageBox</h3>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Username
+                </th>
+                <th>
+                    Email
+                </th>
+                <th>
+                    Subject
+                </th>
+                <th>
+                    Message
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Subject)
+                    </td>
+                    <td>
+                        @if (item.MessageText.Length > 100)
+                        {
+                            @item.MessageText.Substring(0, 100);
+                        }
+                        else
+                        {
+                            @item.MessageText
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="col-12">
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (ViewBag.CurrPage > 1)
+                {
+                    <li class="page-item"><a class="page-link" asp-action="index" asp-route-page="@(ViewBag.CurrPage-1)">Previous</a></li>
+                }
+
+                @for (int i = 1; i < ViewBag.TotalPage; i++)
+                {
+                    <li class="page-item"><a class="page-link" asp-action="index" asp-route-page="@i">@i</a></li>
+                }
+
+                @if (ViewBag.CurrPage < ViewBag.TotalPage)
+                {
+                    <li class="page-item"><a class="page-link" asp-action="index" asp-route-page="@(ViewBag.CurrPage+1)">Next</a></li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>

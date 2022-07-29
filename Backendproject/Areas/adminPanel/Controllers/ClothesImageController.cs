@@ -1,6 +1,7 @@
 ﻿using Backendproject.DAL;
 using Backendproject.Models;
 using Backendproject.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ using System.Threading.Tasks;
 namespace Backendproject.Areas.adminPanel.Controllers
 {
     [Area("adminPanel")]
+    [Authorize(Roles = "Moderator,Admin")]
+
     public class ClothesImageController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,18 +25,29 @@ namespace Backendproject.Areas.adminPanel.Controllers
             _context = context;
             _env = env;
         }
-        public IActionResult Index()
+
+        // bu controller menasizdi vaxtinda niye yazmisham bilmirem, elim gelmedi silmeye
+        public IActionResult Index(int page = 1)
         {
-            List<ClothesImage> clothesImages = _context.ClothesImages.Include(c => c.Clothes).ToList();
+            byte ItemsPerPage = 4;
+            ViewBag.CurrPage = page;
+            ViewBag.TotalPage = Math.Ceiling((decimal)_context.ClothesImages.Count() / ItemsPerPage);
+
+            List<ClothesImage> clothesImages = _context.ClothesImages.Include(c => c.Clothes)
+                   .OrderByDescending(c => c.Id).Skip((page - 1) * ItemsPerPage)
+                   .Take(ItemsPerPage).ToList();
             return View(clothesImages);
         }
+
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
-            ViewBag.ClothesId = _context.Clothes.Include(c => c.ClothesImages).ToList();
+            ViewBag.ClothesId = _context.Clothes.Include(c=>c.ClothesImages).ToList();
             return View();
         }
         [HttpPost]
         [AutoValidateAntiforgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(ClothesImage clothesImage)
         {
             ViewBag.ClothesId = _context.Clothes.Include(c => c.ClothesImages).ToList();
@@ -53,11 +67,11 @@ namespace Backendproject.Areas.adminPanel.Controllers
                 ModelState.AddModelError("Photo", "Please choose valid image file");
                 return View();
             }
-
+            
             clothesImage.Name = await clothesImage.Photo.FileCreate(_env.WebRootPath, "assets/img");
             await _context.ClothesImages.AddAsync(clothesImage);
             await _context.SaveChangesAsync();
-
+            
             return RedirectToAction(nameof(Index));
         }
 
@@ -74,14 +88,14 @@ namespace Backendproject.Areas.adminPanel.Controllers
         }
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public async Task<IActionResult> Edit(int? id, ClothesImage newClothesImage)
+        public async Task<IActionResult> Edit(int? id,ClothesImage newClothesImage)
         {
             ClothesImage existed = await _context.ClothesImages.FirstOrDefaultAsync(c => c.Id == id);
             if (existed is null) return NotFound();
             ViewBag.ClothesId = _context.Clothes.Include(c => c.ClothesImages).ToList();
             if (!ModelState.IsValid) return View(existed);
 
-            if (newClothesImage.Photo is null)
+            if(newClothesImage.Photo is null)
             {
                 string filename = existed.Name;
                 _context.Entry(existed).CurrentValues.SetValues(newClothesImage);
@@ -103,6 +117,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Remove(int? id)
         {
             if (id is null || id == 0) return NotFound();
@@ -119,7 +134,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
         {
             if (id is null || id == 0) return NotFound();
 
-            ClothesImage existed = await _context.ClothesImages.Include(c => c.Clothes).FirstOrDefaultAsync(p => p.Id == id);
+            ClothesImage existed = await _context.ClothesImages.Include(c=>c.Clothes).FirstOrDefaultAsync(p => p.Id == id);
             if (existed is null) return NotFound();
 
             return View(existed);

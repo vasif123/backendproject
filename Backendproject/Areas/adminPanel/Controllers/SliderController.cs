@@ -1,6 +1,7 @@
 ﻿using Backendproject.DAL;
 using Backendproject.Models;
 using Backendproject.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ using System.Threading.Tasks;
 namespace Backendproject.Areas.adminPanel.Controllers
 {
     [Area("adminPanel")]
+    [Authorize(Roles = "Moderator,Admin")]
+
     public class SliderController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,12 +25,18 @@ namespace Backendproject.Areas.adminPanel.Controllers
             _context = context;
             _env = env;
         }
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
-            List<Slider> sliders = _context.Sliders.ToList();
+            byte ItemsPerPage = 4;
+            ViewBag.CurrPage = page;
+            ViewBag.TotalPage = Math.Ceiling((decimal)_context.Sliders.Count() / ItemsPerPage);
+
+            List<Slider> sliders = _context.Sliders.OrderByDescending(c => c.Id)
+                .Skip((page-1)*ItemsPerPage).Take(ItemsPerPage).ToList();
             return View(sliders);
         }
-        
+
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -35,6 +44,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
 
         [HttpPost]
         [AutoValidateAntiforgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Slider slider)
         {
             if (!ModelState.IsValid) return View();
@@ -75,15 +85,6 @@ namespace Backendproject.Areas.adminPanel.Controllers
 
             if (!ModelState.IsValid) return View(existed);
 
-            #region Shekil silinse extra check up
-            // hech bir shekilin olmamagini yoxlayir(belke image i remove elave etdim)
-            //if(newSlider.Photo is null)
-            //{
-            //    ModelState.AddModelError("Photo", "You need to upload one image to create slider");
-            //    return View(existed);
-            //}
-            #endregion
-
             if (newSlider.Photo is null)
             {
                 string filename = existed.Image;
@@ -107,6 +108,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Remove(int? id)
         {
             if (id is null || id == 0) return NotFound();

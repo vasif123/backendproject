@@ -1,6 +1,7 @@
 ﻿using Backendproject.DAL;
 using Backendproject.Models;
 using Backendproject.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,24 +14,31 @@ using System.Threading.Tasks;
 namespace Backendproject.Areas.adminPanel.Controllers
 {
     [Area("adminPanel")]
+    [Authorize(Roles ="Moderator,Admin")]
     public class CategoryController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
 
-        public CategoryController(ApplicationDbContext context, IWebHostEnvironment env)
+        public CategoryController(ApplicationDbContext context,IWebHostEnvironment env)
         {
             _context = context;
             _env = env;
         }
-
-        public IActionResult Index()
+        
+        public IActionResult Index(int page = 1)
         {
-            List<Category> categories = _context.Categories.Include(c => c.Clothes).ToList();
+            byte ItemsPerPage = 6;
+            ViewBag.CurrPage = page;
+            ViewBag.TotalPage = Math.Ceiling((decimal)_context.Categories.Count() / ItemsPerPage);
+
+            List<Category> categories = _context.Categories.Include(c => c.Clothes)
+                .OrderByDescending(c => c.Id).Skip((page - 1) * ItemsPerPage)
+                .Take(ItemsPerPage).ToList();
             return View(categories);
         }
 
-
+        [Authorize(Roles ="Admin")]
         public ActionResult Create()
         {
             return View();
@@ -38,11 +46,12 @@ namespace Backendproject.Areas.adminPanel.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles ="Admin")]
         public async Task<ActionResult> Create(Category category)
         {
             if (!ModelState.IsValid) return View();
 
-            if (category.Photo is null)
+            if(category.Photo is null)
             {
                 ModelState.AddModelError("Photo", "Please input image file");
                 return View();
@@ -60,7 +69,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
+        
         public ActionResult Edit(int? id)
         {
             if (id is null || id == 0) return NotFound();
@@ -71,7 +80,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             return View(existed);
         }
 
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(int? id, Category newCategory)
@@ -94,7 +103,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
                     return View(existed);
                 }
                 //db den shekilsiz elave etmek olur
-                if (existed.Image != null)
+                if(existed.Image != null)
                 {
                     FileValidator.FileDelete(_env.WebRootPath, "assets/img", existed.Image);
                 }
@@ -107,6 +116,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Remove(int? id)
         {
             if (id is null || id == 0) return NotFound();
@@ -114,7 +124,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             if (existed is null) return NotFound();
             //if(existed.Image != null)
             //{
-            FileValidator.FileDelete(_env.WebRootPath, "assets/img", existed.Image);
+                FileValidator.FileDelete(_env.WebRootPath, "assets/img", existed.Image);
 
             //}
             _context.Categories.Remove(existed);

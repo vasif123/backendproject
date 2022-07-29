@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Backend_MVC_Layihe.Migrations
+namespace Backendproject.Migrations
 {
     public partial class createDb : Migration
     {

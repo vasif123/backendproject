@@ -1,6 +1,7 @@
 ﻿using Backendproject.DAL;
 using Backendproject.Models;
 using Backendproject.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,8 @@ using System.Threading.Tasks;
 namespace Backendproject.Areas.adminPanel.Controllers
 {
     [Area("adminpanel")]
+    [Authorize(Roles = "Moderator,Admin")]
+
     public class ClothesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -23,44 +26,54 @@ namespace Backendproject.Areas.adminPanel.Controllers
             _context = context;
             _env = env;
         }
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
+            byte ItemsPerPage = 4;
             ViewBag.Categories = _context.Categories.Include(c => c.Clothes).ToList();
             ViewBag.Colors = _context.Colors.Include(c => c.ClothesColors)
                    .ThenInclude(c => c.ClothesColorSizes).ThenInclude(c => c.Size).ToList();
             ViewBag.Sizes = _context.Sizes.Include(c => c.ClothesColorSizes)
            .ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Color).ToList();
             ViewBag.ClothesColorSizes = _context.ClothesColorSizes
-                .Include(c => c.Size).Include(c => c.ClothesColor).ThenInclude(c => c.Clothes).ToList();
+                .Include(c => c.Size).Include(c => c.ClothesColor).ThenInclude(c=>c.Clothes).ToList();
+            ViewBag.CurrPage = page;
+            ViewBag.TotalPage = Math.Ceiling((decimal)_context.Clothes.Count() / ItemsPerPage);
 
-            List<Clothes> clothes = _context.Clothes.Include(c => c.ClothesImages)
-                .Include(c => c.ClothesColors).ThenInclude(c => c.ClothesColorSizes)
-                .ThenInclude(c => c.Size).ThenInclude(c => c.ClothesColorSizes).ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Color)
-                .Include(c => c.Category)
+            List<Clothes> clothes = _context.Clothes.Include(c => c.ClothesImages).Include(c=>c.Discount)
+                .Include(c=>c.ClothesColors).ThenInclude(c=>c.ClothesColorSizes)
+                .ThenInclude(c=>c.Size).ThenInclude(c=>c.ClothesColorSizes).ThenInclude(c=>c.ClothesColor).ThenInclude(c=>c.Color)
+                .Include(c=>c.Category).OrderByDescending(c => c.Id)
+                .Skip((page - 1) * ItemsPerPage).Take(ItemsPerPage)
                 .ToList();
 
             return View(clothes);
         }
+
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
-            ViewBag.Categories = _context.Categories.Include(c => c.Clothes).ToList();
+            ViewBag.Categories = _context.Categories.Include(c=>c.Clothes).ToList();
             ViewBag.Colors = _context.Colors.Include(c => c.ClothesColors)
                    .ThenInclude(c => c.ClothesColorSizes).ThenInclude(c => c.Size).ToList();
             ViewBag.Sizes = _context.Sizes.Include(c => c.ClothesColorSizes)
                 .ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Color).ToList();
             ViewBag.ClothesColorSizes = _context.ClothesColorSizes
                 .Include(c => c.Size).Include(c => c.ClothesColor).ThenInclude(c => c.Clothes).ToList();
+            ViewBag.ClothesInformations = _context.ClothesInformations.Include(c=>c.Clothes).ToList();
+            ViewBag.Discounts = _context.Discounts.Include(c => c.Clothes).ToList();
+
             return View();
         }
 
         [HttpPost]
         [AutoValidateAntiforgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Clothes clothes)
         {
             if (!ModelState.IsValid)
             {
                 return ErrorMessage(string.Empty);
-            }
+            } 
 
             if (clothes.MainPhoto is null || clothes.DetailPhotos is null)
             {
@@ -71,7 +84,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             {
                 return ErrorMessage("Please choose valid image file");
             }
-            if (clothes.ColorId == default || clothes.SizeIds is null
+            if(clothes.ColorId == default || clothes.SizeIds is null 
                 || clothes.CategoryId is null || clothes.ClothesColorSizeValues is null)
             {
                 return ErrorMessage("Choose at least 1 size, 1 color and 1 category");
@@ -80,7 +93,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             ClothesImage main = new ClothesImage
             {
                 Name = await clothes.MainPhoto.FileCreate(_env.WebRootPath,
-                "assets/img", null, _context.ClothesImages),
+                "assets/img"),
                 IsMain = true,
                 Alternative = clothes.Name,
                 Clothes = clothes
@@ -88,7 +101,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
             await _context.ClothesImages.AddAsync(main);
 
             TempData["FileName"] = default(string);
-
+          
             foreach (IFormFile photo in clothes.DetailPhotos.ToList())
             {
                 if (!photo.IsImageOkay(2))
@@ -113,7 +126,15 @@ namespace Backendproject.Areas.adminPanel.Controllers
                 return ErrorMessage("Couldn't load any of the detail images");
             }
 
+            if (clothes.DiscountId != null)
+            {
+                decimal discountPercentage = _context.Discounts
+                     .FirstOrDefault(d => d.Id == clothes.DiscountId).PercentValue;
+                clothes.DiscountPrice = clothes.Price - (clothes.Price * discountPercentage);
+            }
+
             SetRelationBetweenClothes(clothes);
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -123,8 +144,9 @@ namespace Backendproject.Areas.adminPanel.Controllers
 
             if (id is null || id == 0) return NotFound();
             Clothes existed = _context.Clothes.Include(c => c.ClothesImages)
-                .Include(c => c.ClothesColors).ThenInclude(c => c.ClothesColorSizes)
-                .ThenInclude(c => c.Size).FirstOrDefault(c => c.Id == id);
+                .Include(c => c.ClothesInformation).Include(c => c.Discount)
+                .Include(c=>c.ClothesColors).ThenInclude(c=>c.ClothesColorSizes)
+                .ThenInclude(c=>c.Size).FirstOrDefault(c => c.Id == id);
             if (existed is null) return NotFound();
 
             ViewBag.Categories = _context.Categories.Include(c => c.Clothes).ToList();
@@ -134,6 +156,8 @@ namespace Backendproject.Areas.adminPanel.Controllers
                 .ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Color).ToList();
             ViewBag.ClothesColorSizes = _context.ClothesColorSizes
                 .Include(c => c.Size).Include(c => c.ClothesColor).ThenInclude(c => c.Clothes).ToList();
+            ViewBag.ClothesInformations = _context.ClothesInformations.Include(c => c.Clothes).ToList();
+            ViewBag.Discounts = _context.Discounts.Include(c => c.Clothes).ToList();
 
             return View(existed);
         }
@@ -142,8 +166,9 @@ namespace Backendproject.Areas.adminPanel.Controllers
         [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Edit(int? id, Clothes newClothes)
         {
-            Clothes existed = _context.Clothes.Include(c => c.ClothesImages).Include(c => c.ClothesColors)
-                .ThenInclude(c => c.ClothesColorSizes).ThenInclude(c => c.Size).FirstOrDefault(c => c.Id == id);
+            Clothes existed = _context.Clothes.Include(c => c.ClothesImages).Include(c=>c.Discount)
+                .Include(c => c.ClothesInformation).Include(c=>c.ClothesColors)
+                .ThenInclude(c=>c.ClothesColorSizes).ThenInclude(c=>c.Size).FirstOrDefault(c => c.Id == id);
             if (existed is null) return NotFound();
 
             if (!ModelState.IsValid)
@@ -155,13 +180,14 @@ namespace Backendproject.Areas.adminPanel.Controllers
             {
                 return ErrorMessage("You must upload at least 1 detail image", existed);
             }
-            if (newClothes.CategoryId is null || newClothes.ColorId == default
+            if (newClothes.CategoryId is null || newClothes.ColorId == default 
                 || newClothes.SizeIds is null || newClothes.ClothesColorSizeValues is null)
             {
                 return ErrorMessage("You must choose at least 1 category, 1 color and 1 size", existed);
             }
 
             _context.Entry(existed).CurrentValues.SetValues(newClothes);
+           
 
             TempData["FileName"] = default(string);
             //if the user inputs detail photos
@@ -207,7 +233,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
                     ClothesImage detailImage = new ClothesImage
                     {
                         Name = await image.FileCreate(_env.WebRootPath,
-                        "assets/img", null, _context.ClothesImages),
+                        "assets/img"),
                         IsMain = false,
                         Clothes = existed,
                         Alternative = newClothes.Name,
@@ -229,7 +255,7 @@ namespace Backendproject.Areas.adminPanel.Controllers
                     Alternative = newClothes.Name,
                     Name = await newClothes.MainPhoto
                     .FileCreate(_env.WebRootPath,
-                    "assets/img", null, _context.ClothesImages),
+                    "assets/img"),
                     Clothes = existed,
                 };
                 string mainPhoto = existed.ClothesImages
@@ -241,8 +267,127 @@ namespace Backendproject.Areas.adminPanel.Controllers
                 existed.ClothesImages.FirstOrDefault(p => p.IsMain == true)
                     .Alternative = main.Alternative;
             }
+            if (existed.DiscountId != null)
+            {
+                decimal discountPercentage = _context.Discounts
+                    .FirstOrDefault(d => d.Id == existed.DiscountId).PercentValue;
+                existed.DiscountPrice = existed.Price - (existed.Price * discountPercentage);
+            }
+            // empty color and sizes in existed clothes 
+            ClearAllColorAndSizesInClothes(newClothes, existed);
 
-            #region clear all color and sizes
+            // add color and sizes in existed clothes
+            SetRelationBetweenClothes(newClothes, existed);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Remove(int? id)
+        {
+            if (id is null || id == 0) return NotFound();
+
+            Clothes existed = await _context.Clothes.Include(p => p.ClothesImages).Include(c => c.ClothesInformation)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            existed.ClothesImages.ForEach(cImage => FileValidator.FileDelete(_env.WebRootPath,
+                "assets/img", cImage.Name));
+
+            _context.Clothes.Remove(existed);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Detail(int? id)
+        {
+            if (id is null || id == 0) return NotFound();
+
+            Clothes existed = await _context.Clothes.Include(p => p.ClothesImages).Include(c => c.ClothesInformation)
+                .Include(c=>c.Category).Include(c=>c.Discount).Include(c=>c.ClothesColors).ThenInclude(c=>c.ClothesColorSizes)
+                .ThenInclude(c=>c.Size).FirstOrDefaultAsync(p => p.Id == id);
+            if (existed is null) return NotFound();
+
+            return View(existed);
+        }
+        // Utility methods
+        public IActionResult ErrorMessage(string text, Clothes existed = null)
+        {
+            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.Colors = _context.Colors.Include(c => c.ClothesColors)
+                .ThenInclude(c => c.ClothesColorSizes).ThenInclude(c => c.Size).ToList();
+            ViewBag.Sizes = _context.Sizes.Include(c => c.ClothesColorSizes)
+           .ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Color).ToList();
+            ViewBag.ClothesColorSizes = _context.ClothesColorSizes
+            .Include(c => c.Size).Include(c => c.ClothesColor).ThenInclude(c => c.Clothes).ToList();
+            ViewBag.ClothesInformations = _context.ClothesInformations.Include(c => c.Clothes).ToList();
+            ViewBag.Discounts = _context.Discounts.Include(c => c.Clothes).ToList();
+
+            ModelState.AddModelError(string.Empty, text);
+            return View(existed);
+        }
+
+        public void SetRelationBetweenClothes(Clothes newClothes,Clothes existed=null)
+        {
+            // default olaraq existedi nulla menimsetmemin sebebi create edende clothes in uzerinde ishleyirik ve ikincisine ehtiyac qalmir.
+
+            // hamisini arraye yighiram, her checkde value elave olunur ve sonuncunu sechirem ki hamisini daxil etdiyini goturum.
+            string relations = newClothes.ClothesColorSizeValues.LastOrDefault();
+            string[] colorAndSizes = relations.Split(".");
+            for (int i = 0; i < colorAndSizes.Length - 1; i++)
+            {
+                List<string> arrList = colorAndSizes[i].Split(",").ToList();
+
+                // ikinci loopda split edende ilk index boshluq olur onun qarshisini almaq uchun yoxlama apariram.
+                if (arrList[0] == string.Empty)
+                {
+                    arrList.RemoveAt(0);
+                }
+                ClothesColor clothesColor = default;
+                for (int j = 0; j < arrList.Count - 1; j++)
+                {
+                    bool result = int.TryParse(arrList[j], out int colorAndSizeId);
+                    if (result)
+                    {
+                        if (j == 0)
+                        {
+                            if(existed is null)
+                            {
+                                clothesColor = new ClothesColor
+                                {
+                                    ColorId = colorAndSizeId,
+                                    Clothes = newClothes
+                                };
+                                _context.ClothesColors.Add(clothesColor);
+                                continue;
+                            }
+                            else
+                            {
+                                clothesColor = new ClothesColor
+                                {
+                                    ColorId = colorAndSizeId,
+                                    Clothes = existed
+                                };
+                                _context.ClothesColors.Add(clothesColor);
+                                continue;
+                            }
+                           
+                        }
+                        ClothesColorSize clothesColorSize = new ClothesColorSize
+                        {
+                            SizeId = colorAndSizeId,
+                            ClothesColor = clothesColor
+                        };
+                        _context.ClothesColorSizes.Add(clothesColorSize);
+                    }
+                }
+
+            }
+        }
+        
+        // hamisini silmeden edit i demek olar bitirmishdim amma vaxt chatmayacaq deye bu yolla etdim(+buglari yoxlamamishdim)
+        public void ClearAllColorAndSizesInClothes(Clothes newClothes, Clothes existed)
+        {
             string relations = newClothes.ClothesColorSizeValues.LastOrDefault();
             string[] colorsizeIds = relations.Split(".");
             for (int i = 0; i < colorsizeIds.Length - 1; i++)
@@ -265,95 +410,6 @@ namespace Backendproject.Areas.adminPanel.Controllers
                             item.ClothesColorSizes.RemoveAll(c => c.SizeId == csId);
                             _context.ClothesColors.Remove(item);
                         }
-                    }
-                }
-            }
-            #endregion
-
-            SetRelationBetweenClothes(newClothes, existed);
-
-            _context.SaveChanges();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Remove(int? id)
-        {
-            if (id is null || id == 0) return NotFound();
-
-            Clothes existed = await _context.Clothes.Include(p => p.ClothesImages)
-                .FirstOrDefaultAsync(p => p.Id == id);
-            existed.ClothesImages.ForEach(cImage => FileValidator.FileDelete(_env.WebRootPath,
-                "assets/img", cImage.Name));
-
-            _context.Clothes.Remove(existed);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-        // Utility methods
-        public IActionResult ErrorMessage(string text, Clothes existed = null)
-        {
-            ViewBag.Categories = _context.Categories.ToList();
-            ViewBag.Colors = _context.Colors.Include(c => c.ClothesColors)
-                .ThenInclude(c => c.ClothesColorSizes).ThenInclude(c => c.Size).ToList();
-            ViewBag.Sizes = _context.Sizes.Include(c => c.ClothesColorSizes)
-           .ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Color).ToList();
-            ViewBag.ClothesColorSizes = _context.ClothesColorSizes
-            .Include(c => c.Size).Include(c => c.ClothesColor).ThenInclude(c => c.Clothes).ToList();
-            ModelState.AddModelError(string.Empty, text);
-            return View(existed);
-        }
-
-        public void SetRelationBetweenClothes(Clothes newClothes, Clothes existed = null)
-        {
-            // hamisini arraye yighiram, her checkde value elave olunur ve sonuncunu sechirem ki hamisini daxil etdiyini goturum.
-            string relations = newClothes.ClothesColorSizeValues.LastOrDefault();
-            string[] colorAndSizes = relations.Split(".");
-            for (int i = 0; i < colorAndSizes.Length - 1; i++)
-            {
-                List<string> arrList = colorAndSizes[i].Split(",").ToList();
-
-                // ikinci loopda split edende ilk index boshluq olur onun qarshisini almaq uchun yoxlama apariram.
-                if (arrList[0] == string.Empty)
-                {
-                    arrList.RemoveAt(0);
-                }
-                ClothesColor clothesColor = default;
-                for (int j = 0; j < arrList.Count - 1; j++)
-                {
-                    bool result = int.TryParse(arrList[j], out int colorAndSizeId);
-                    if (result)
-                    {
-                        if (j == 0)
-                        {
-                            if (existed is null)
-                            {
-                                clothesColor = new ClothesColor
-                                {
-                                    ColorId = colorAndSizeId,
-                                    Clothes = newClothes
-                                };
-                                _context.ClothesColors.Add(clothesColor);
-                                continue;
-                            }
-                            else
-                            {
-                                clothesColor = new ClothesColor
-                                {
-                                    ColorId = colorAndSizeId,
-                                    Clothes = existed
-                                };
-                                _context.ClothesColors.Add(clothesColor);
-                                continue;
-                            }
-
-                        }
-                        ClothesColorSize clothesColorSize = new ClothesColorSize
-                        {
-                            SizeId = colorAndSizeId,
-                            ClothesColor = clothesColor
-                        };
-                        _context.ClothesColorSizes.Add(clothesColorSize);
                     }
                 }
             }

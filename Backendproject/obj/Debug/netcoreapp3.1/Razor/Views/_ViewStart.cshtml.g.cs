@@ -21,20 +21,41 @@ using Backendproject.ViewModels;
 #nullable disable
 #nullable restore
 #line 2 "C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\Views\_ViewImports.cshtml"
-using Backendproject.Models;
+using Backendproject.ViewModels.Cart;
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
 #line 3 "C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\Views\_ViewImports.cshtml"
+using Backendproject.Models;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 4 "C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\Views\_ViewImports.cshtml"
+using Backendproject.ViewModels.Account;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 5 "C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\Views\_ViewImports.cshtml"
 using Newtonsoft.Json;
 
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line 6 "C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\Views\_ViewImports.cshtml"
+using Backendproject.Service;
+
+#line default
+#line hidden
+#nullable disable
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"f400a24e4f1c1f8dbc87c0f761266a45e781e06b", @"/Views/_ViewStart.cshtml")]
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"529a36ebb4183e2c6b11f7200b2327e4dfb808a8", @"/Views/_ViewImports.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"6a142f81c0a0370c3a3f30a33bee4d3cf9db518b", @"/Views/_ViewImports.cshtml")]
     public class Views__ViewStart : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
         #pragma warning disable 1998
