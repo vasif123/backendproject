@@ -18,14 +18,25 @@ namespace Backendproject.Models
         public List<ClothesImage> ClothesImages { get; set; }
         public int? CategoryId { get; set; }
         public Category Category { get; set; }
-
         public List<ClothesColor> ClothesColors { get; set; }
 
-        //hele deqiq bilmirem bunlari
-        [NotMapped]
+        
+       
+        public IFormFile MainPhoto { get; set; }
+       
+        public List<IFormFile> DetailPhotos { get; set; }
+        
+        public List<int> ImageIds { get; set; }
+       
+        public List<int> SizeIds { get; set; }
+        
         public int SizeId { get; set; }
-        [NotMapped]
+     
         public int ColorId { get; set; }
-        public int? Id { get; internal set; }
+        
+        public int Quantity { get; set; }
+
+       
+        public List<string> ClothesColorSizeValues { get; set; }
     }
 }

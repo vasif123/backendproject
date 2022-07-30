@@ -18,21 +18,37 @@ namespace Backendproject.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int? categoryId)
         {
             ViewBag.Colors = _context.Colors.Include(c => c.ClothesColors).ToList();
-            ViewBag.Sizes = _context.Sizes.Include(c => c.ColorSizes).ToList();
+            ViewBag.Sizes = _context.Sizes.Include(c => c.ClothesColorSizes)
+                .ThenInclude(c => c.ClothesColor).ThenInclude(c => c.Clothes).ToList();
+            if (categoryId != null || categoryId != 0)
+            {
+                Category category = await _context.Categories
+                .Include(c => c.Clothes).ThenInclude(c => c.ClothesImages).FirstOrDefaultAsync(c => c.Id == categoryId);
+                if (category != null)
+                {
+                    if (category.Clothes.Count() == 0)
+                    {
+                        ViewBag.Msg = "There's no products in this category";
+                        //return View(category.Clothes);
+                    }
+                    return View(category.Clothes);
+
+                }
+            }
             List<Clothes> clothes = _context.Clothes
                 .Include(c => c.ClothesImages)
              .Include(c => c.ClothesColors).ThenInclude(c => c.Color).OrderByDescending(c => c.Id).ToList();
-     
+
             return View(clothes);
         }
         public IActionResult GetDatas(string sortingOrder)
         {
             List<Clothes> clothes = _context.Clothes
              .Include(c => c.ClothesImages)
-             .Include(c=>c.ClothesColors).ThenInclude(c=>c.Color)
+             .Include(c => c.ClothesColors).ThenInclude(c => c.Color)
              .OrderByDescending(c => c.Id).ToList();
             switch (sortingOrder)
             {
@@ -52,10 +68,24 @@ namespace Backendproject.Controllers
                     clothes = clothes.OrderByDescending(clothes => clothes.Id).ToList();
                     break;
             }
-           
-            return PartialView("_ClothesFetchPartialView", clothes);
+
+            List<Color> colors = _context.Colors.Include(c => c.ClothesColors).ToList();
+            foreach (Color color in colors)
+            {
+                if (color.Name == sortingOrder)
+                {
+                    clothes = clothes.Where(c => c.ClothesColors.Any(d => d.Color.Name == sortingOrder)).ToList();
+                    break;
+                }
+                else if (sortingOrder == "allColors")
+                {
+                    clothes = clothes.OrderByDescending(c => c.Id).ToList();
+                    break;
+                }
+            }
+            return PartialView("_ClothesPartialView", clothes);
         }
 
-       
+
     }
 }

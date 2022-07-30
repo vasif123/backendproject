@@ -1,4 +1,5 @@
-﻿using Backendproject.Models.Base;
+﻿
+using Backendproject.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,6 @@ namespace Backendproject.Models
         public Clothes Clothes { get; set; }
         public int ColorId { get; set; }
         public Color Color { get; set; }
+        public List<ClothesColorSize> ClothesColorSizes { get; set; }
     }
 }

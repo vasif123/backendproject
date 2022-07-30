@@ -12,7 +12,6 @@ namespace Backendproject.Models
         [Required, StringLength(maximumLength: 25)]
         public string Name { get; set; }
         public List<ClothesColor> ClothesColors { get; set; }
-        public List<ColorSize> ColorSizes { get; set; }
-
+        
     }
 }

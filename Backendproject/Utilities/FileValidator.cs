@@ -14,33 +14,7 @@ namespace Backendproject.Utilities
             public static async Task<string> FileCreate(this IFormFile file, string root, string folder, DbSet<Slider> sliders = null, DbSet<ClothesImage> cImages = null)
             {
                 string filename = string.Empty;
-                //Bele ishleyir amma baglamamin sebebi eyni papkadan image goturende gedib override edir ve silende o shekil hemishelik gedir.
-
-                //if (sliders != null)
-                //{
-                //    bool isSame = sliders.Any(s => s.Image == file.FileName);
-                //    if (isSame)
-                //    {
-                //        filename = string.Concat(Guid.NewGuid(), file.FileName);
-                //    }
-                //    else
-                //    {
-                //        filename = file.FileName;
-                //    }
-                //}
-
-                //if (cImages != null)
-                //{
-                //    bool isSame = cImages.Any(c => c.Name == file.FileName);
-                //    if (isSame)
-                //    {
-                //        filename = string.Concat(Guid.NewGuid(), file.FileName);
-                //    }
-                //    else
-                //    {
-                //        filename = file.FileName;
-                //    }
-                //}
+                
                 filename = string.Concat(Guid.NewGuid(), file.FileName);
 
                 string path = Path.Combine(root, folder);

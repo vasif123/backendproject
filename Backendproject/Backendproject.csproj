@@ -2,7 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Backend_MVC_Layihe</RootNamespace>
+    <RootNamespace>Backendproject</RootNamespace>
+    <ApplicationIcon></ApplicationIcon>
+    <Win32Resource />
+    <StartupObject>Backendproject.Program</StartupObject>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <OutputType>WinExe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
