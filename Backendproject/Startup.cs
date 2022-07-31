@@ -56,8 +56,7 @@ namespace Backendproject
                 opt.User.RequireUniqueEmail = false;
                
             }).AddDefaultTokenProviders().AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddScoped<LayoutService>();
-            services.AddHttpContextAccessor();
+            
 
         }
 

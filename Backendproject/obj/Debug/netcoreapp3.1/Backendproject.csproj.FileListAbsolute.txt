@@ -67,7 +67,6 @@ C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcor
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.Data.SqlClient.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Abstractions.dll
-C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Design.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Relational.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.SqlServer.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Caching.Abstractions.dll
@@ -203,12 +202,9 @@ C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\obj\Debug\netcor
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\obj\Debug\netcoreapp3.1\Razor\Views\Account\Login.cshtml.g.cs
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\obj\Debug\netcoreapp3.1\Razor\Views\Account\Register.cshtml.g.cs
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\obj\Debug\netcoreapp3.1\Razor\Views\Wishlist\Index.cshtml.g.cs
-C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\EntityFramework.SqlServer.dll
-C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\EntityFramework.dll
-C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.AspNet.Identity.Core.dll
-C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.AspNet.Identity.EntityFramework.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Cryptography.Internal.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Identity.Core.dll
 C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Identity.Stores.dll
+C:\Users\UX463FL\OneDrive\Desktop\Backendproject\Backendproject\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Design.dll
