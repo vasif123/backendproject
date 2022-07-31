@@ -1,0 +1,228 @@
+﻿@model List<Clothes>
+@{
+    List<Color> colors = ViewBag.Colors;
+    List<Size> sizes = ViewBag.Sizes;
+}
+
+
+<!-- Breadcrumb Start -->
+<div class="container-fluid">
+    <div class="row px-xl-5">
+        <div class="col-12">
+            <nav class="breadcrumb bg-light mb-30">
+                <a class="breadcrumb-item text-dark" asp-controller="home" asp-action="index">Home</a>
+                <a class="breadcrumb-item text-dark" asp-controller="shop" asp-action="index">Shop</a>
+                <span class="breadcrumb-item active">Shop List</span>
+            </nav>
+        </div>
+    </div>
+</div>
+<!-- Breadcrumb End -->
+<!-- Shop Start -->
+<div class="container-fluid">
+    <div class="row px-xl-5">
+        <!-- Shop Sidebar Start -->
+        <div class="col-lg-3 col-md-4">
+            <!-- Price Start -->
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by price</span></h5>
+            <div class="bg-light p-4 mb-30">
+                <form>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" checked id="price-all">
+                        <label class="custom-control-label" for="price-all">All Price</label>
+                        <span class="badge border font-weight-normal">1000</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="price-1">
+                        <label class="custom-control-label" for="price-1">$0 - $100</label>
+                        <span class="badge border font-weight-normal">150</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="price-2">
+                        <label class="custom-control-label" for="price-2">$100 - $200</label>
+                        <span class="badge border font-weight-normal">295</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="price-3">
+                        <label class="custom-control-label" for="price-3">$200 - $300</label>
+                        <span class="badge border font-weight-normal">246</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="price-4">
+                        <label class="custom-control-label" for="price-4">$300 - $400</label>
+                        <span class="badge border font-weight-normal">145</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                        <input type="checkbox" class="custom-control-input" id="price-5">
+                        <label class="custom-control-label" for="price-5">$400 - $500</label>
+                        <span class="badge border font-weight-normal">168</span>
+                    </div>
+                </form>
+            </div>
+            <!-- Price End -->
+            <!-- Color Start -->
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by color</span></h5>
+            <div id="color-section" class="bg-light p-4 mb-30">
+                <form>
+                    @{int colorCount = 0;}
+                    @{
+                        colors.ForEach(c => colorCount += c.ClothesColors.Count);
+                    }
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+
+                        <input style="width:100%" type="checkbox" class="custom-control-input" checked id="color-all">
+                        <label style="width:120px" class="custom-control-label" for="color-all">All colors</label>
+                        <a asp-action="getdatas" asp-route-sortingOrder="allColors" style="width:100%;height:20px;"> </a>
+                        <span class="badge border font-weight-normal">
+                            @(Model.Count != 0 ? Model.Count : 0)
+                        </span>
+                    </div>
+                    @foreach (Color color in colors)
+                    {
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input style="width:100%;" type="checkbox" class="custom-control-input">
+                            <label class="custom-control-label">@color.Name</label>
+                            <a asp-action="getdatas" asp-route-sortingOrder="@color.Name" style="width:100%;height:20px;"> </a>
+                            <span class="badge border font-weight-normal">@color.ClothesColors.Count</span>
+                        </div>
+
+                    }
+
+                </form>
+            </div>
+            <!-- Color End -->
+            <!-- Size Start -->
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by size</span></h5>
+            <div id="size-section" class="bg-light p-4 mb-30">
+                <form>
+
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input style="width:100%" type="checkbox" class="custom-control-input" checked>
+                        <label style="width:120px" class="custom-control-label" for="size-all">All Sizes</label>
+                        <a style="width:100%;height:20px;"> </a>
+                        <span class="badge border font-weight-normal">@(Model.Count != 0 ? Model.Count : 0)</span>
+                    </div>
+                    @foreach (Size size in sizes)
+                    {
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input style="width:100%" type="checkbox" class="custom-control-input">
+                            <label class="custom-control-label">@size.Name</label>
+                            <a style="width:100%;height:20px;"> </a>
+                            <span class="badge border font-weight-normal">@size.ClothesColorSizes.Count</span>
+                        </div>
+                    }
+
+                </form>
+            </div>
+            <!-- Size End -->
+        </div>
+        <!-- Shop Sidebar End -->
+        <!-- Shop Product Start -->
+        <div class="col-lg-9 col-md-8">
+            <div id="products-content" class="row pb-3">
+                <div class="col-12 pb-1">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <button class="btn btn-sm btn-light"><i class="fa fa-th-large"></i></button>
+                            <button class="btn btn-sm btn-light ml-2"><i class="fa fa-bars"></i></button>
+                        </div>
+                        <div class="ml-2">
+                            <div id="product-sorting" class="btn-group">
+                                <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">Sorting</button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a id="latest" class="dropdown-item" asp-controller="shop" asp-action="getdatas" asp-route-sortingOrder="@("Latest")">Latest</a>
+                                    <a id="a-z" class="dropdown-item" asp-controller="shop" asp-action="getdatas" asp-route-sortingOrder="@("A-Z")">A-Z</a>
+                                    <a id="z-a" class="dropdown-item" asp-controller="shop" asp-action="getdatas" asp-route-sortingOrder="@("Z-A")">Z-A</a>
+                                    <a id="z-a" class="dropdown-item" asp-controller="shop" asp-action="getdatas" asp-route-sortingOrder="@("Price by ascending")">Price by ascending</a>
+                                    <a id="z-a" class="dropdown-item" asp-controller="shop" asp-action="getdatas" asp-route-sortingOrder="@("Price by descending")">Price by descending</a>
+
+                                </div>
+                            </div>
+                            <div class="btn-group ml-2">
+                                <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">Showing</button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="#">10</a>
+                                    <a class="dropdown-item" href="#">20</a>
+                                    <a class="dropdown-item" href="#">30</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row w-100 pb-3" id="partial-products-container">
+                    @if (ViewBag.Msg is null)
+                    {
+                        @await Html.PartialAsync("_ClothesPartialView", Model)
+
+                    }
+                    else
+                    {
+                        <div class="d-flex w-100 justify-content-center">
+                            <h3 class="text-danger">@ViewBag.Msg</h3>
+
+                        </div>
+                    }
+                </div>
+                <div class="col-12">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            @if (ViewBag.CurrPage > 1)
+                            {
+                                <li class="page-item"><a class="page-link" asp-action="index" asp-route-page="@(ViewBag.CurrPage-1)">Previous</a></li>
+                            }
+
+                            @for (int i = 1; i < ViewBag.TotalPage; i++)
+                            {
+                                <li class="page-item"><a class="page-link" asp-action="index" asp-route-page="@i">@i</a></li>
+                            }
+
+                            @if (ViewBag.CurrPage < ViewBag.TotalPage)
+                            {
+                                <li class="page-item"><a class="page-link" asp-action="index" asp-route-page="@(ViewBag.CurrPage+1)">Next</a></li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <!-- Shop Product End -->
+    </div>
+</div>
+<!-- Shop End -->
+
+@section ShopSorting{
+    <script>
+        const productSortingElement = document.querySelector("#product-sorting");
+        const partialProductContainer = document.querySelector("#partial-products-container");
+
+        productSortingElement.addEventListener("click", (e) => {
+            e.preventDefault();
+            const currentTargetId = e.target.id;
+            console.log(currentTargetId)
+            const currentTargetHref = e.target.getAttribute("href");
+            console.log(currentTargetHref)
+            console.log(e.target, productSortingElement)
+            // click eventi qoyduguma basmiramsa ishlesin(parentine vermishdim event listeneri)
+            if (e.target != productSortingElement.querySelector("button")) {
+                fetch(currentTargetHref).then(res => res.text())
+                    .then(data => partialProductContainer.innerHTML = data);
+            }
+        })
+        // Color section
+        const colorSection = document.querySelector("#color-section");
+        const colorElements = colorSection.querySelectorAll("form div a");
+        console.log(colorSection);
+        colorElements.forEach(color => color.addEventListener("click", function (e) {
+            e.preventDefault();
+            console.log(e.target);
+            const colorHrefAttribute = e.target.getAttribute("href");
+            console.log(colorHrefAttribute);
+            const inputElement = color.previousElementSibling.previousElementSibling;
+
+            colorElements.forEach(clr => clr.previousElementSibling.previousElementSibling.checked = false)
+            inputElement.checked = true;
+            fetch(colorHrefAttribute).then(res => res.text())
+                .then(data => partialProductContainer.innerHTML = data);
+        }))
+    </script>
+}
